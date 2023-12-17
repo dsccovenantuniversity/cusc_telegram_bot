@@ -17,6 +17,11 @@ The bot recieves messages from a particular admin abd broadcasts it to all users
 
 Check out the [bot](https://t.me/studentcouncilcu_bot/) on telgram
 
+### Deployment
+
+- Render Deployment: See `example.env` file for environment variables.
+  - **Required**: Add a `requirements.txt` file for render to install dependencies
+
 ## Help
 
 Simply block the bot if tired of receiving messages
