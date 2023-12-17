@@ -20,7 +20,7 @@ Check out the [bot](https://t.me/studentcouncilcu_bot/) on telgram
 ### Deployment
 
 - Render Deployment: See `example.env` file for environment variables.
-  - **Required**: Add a `requirements.txt` file for render to install dependencies
+  - **Required**: Add a `requirements.txt` file or a `Pipfile` for render to install dependencies. For `Pipfile`, remember to update the build command on Render
 
 ## Help
 
