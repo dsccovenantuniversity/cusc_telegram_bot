@@ -233,7 +233,7 @@ def getMessage():
 @server.route("/")
 def webhook():
     bot.remove_webhook()
-    bot.set_webhook(url="https://cusc-bot.herokuapp.com/" + TOKEN)
+    bot.set_webhook(url="https://cusc-telegram-bot-kjz4.onrender.com" + TOKEN)
     return "!", 200
 
 
