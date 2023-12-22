@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.environ["TOKEN"]
+WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 CHAIRMAN = int(os.environ["CHAIRMAN"])
 PRO = int(os.environ["PRO"])
 AGS = int(os.environ["AGS"])
@@ -233,7 +234,7 @@ def getMessage():
 @server.route("/")
 def webhook():
     bot.remove_webhook()
-    bot.set_webhook(url="https://cusc-telegram-bot-kjz4.onrender.com" + TOKEN)
+    bot.set_webhook(WEBHOOK_URL + TOKEN)
     return "!", 200
 
 
