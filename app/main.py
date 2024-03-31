@@ -279,7 +279,9 @@ def save_new_media(message):
 def getMessage():
     json_string = request.get_data().decode("utf-8")
     update = telebot.types.Update.de_json(json_string)
+    print("before")
     bot.process_new_updates([update])
+    print("after received")
     return "!", 200
 
 

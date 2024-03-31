@@ -41,7 +41,7 @@ def add_new_admin(id: int, name: str, role: str) -> None:
 def get_admins():
     """Returns a list of all admins
     """
-    return admins.find()
+    return [dict(admin) for admin in admins.find()]
 
 
 def insert_new_user(id: int, chat_type: str) -> None:
