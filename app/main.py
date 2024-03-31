@@ -3,21 +3,21 @@ import time
 from typing import List
 
 from app import mongo
+from app import validator
 
 
 import telebot
 from flask import Flask, request
-
 from dotenv import load_dotenv
 
-load_dotenv()
+
+load_dotenv(override=True)
 
 TOKEN = os.environ["TOKEN"]
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
-CHAIRMAN = int(os.environ["CHAIRMAN"])
-PRO = int(os.environ["PRO"])
-AGS = int(os.environ["AGS"])
-ADMIN = [CHAIRMAN, PRO, AGS]
+SUPER_ADMIN = int(os.environ["SUPER_ADMIN"])
+ADMIN = {"super_admins":  [SUPER_ADMIN], "admins": []}
+
 server = Flask(__name__)
 
 categories = {
@@ -72,6 +72,18 @@ document
 message_dict = dict()
 
 
+def is_admin(id: int) -> bool:
+    """Returns true if a user is an admin or super admin
+    """
+    return (id in ADMIN["admins"]) or (id in ADMIN["super_admins"])
+
+
+def is_super_admin(id: int):
+    """Returns true if a user is a super admin
+    """
+    return id in ADMIN["super_admins"]
+
+
 def send_messages(ids: List[str], func, **kwargs):
     message_dict.clear()
     count = 0
@@ -93,10 +105,12 @@ def start_message_handler(message):
 
     if chat.type != "private":
         return
-    if chat.id not in ADMIN:
+
+    if not is_admin(chat.id):
         bot.reply_to(message=message, text=start_message_text,
                      parse_mode="MarkdownV2")
         return
+
     bot.reply_to(message=message,
                  text=f"Hello {chat.first_name.split(' ')[0].title()},\n"+admin_start_message, parse_mode="MarkdownV2")
 
@@ -104,18 +118,40 @@ def start_message_handler(message):
 @bot.message_handler(commands=["deletemessage"])
 def delete_messages(message):
     chat = message.chat
-    if chat.id not in ADMIN:
+    if not is_admin(chat.id):
         return
 
     for chat_id, message_id in message_dict.items():
         bot.delete_message(chat_id=chat_id, message_id=message_id)
 
 
+@bot.message_handler(commands=["add_admin"])
+def add_admin(message):
+
+    chat = message.chat
+    if not is_super_admin(chat.id):
+        return
+
+    res = validator.validate_add_admin(message.text)
+    errors = res["errors"]
+    data = res["data"]
+
+    if errors is not None:
+        msg = "\n".join([f"{field} - {err[0]}"
+                        for field, err in res["errors"].items()])
+        bot.send_message(chat.id, msg)
+        return
+
+    mongo.add_new_admin(data["id"], data["name"], data["role"])
+
+    bot.send_message(chat.id, f"{data['name']} is now a/an {data['role']}")
+
+
 @bot.message_handler(func=lambda message: message.text.startswith("/sendmedia"))
 def broadcast_photo(message):
     chat = message.chat
 
-    if chat.id not in ADMIN:
+    if not is_admin(chat.id):
         return
 
     # Initialise items
@@ -167,7 +203,7 @@ def broadcast_photo(message):
     send_messages(group_ids, func, kw_args)
 
 
-@bot.message_handler(func=lambda message: message.chat.id in ADMIN)
+@bot.message_handler(func=lambda message: message.chat.id in ADMIN["super_admins"])
 def broadcast_message(message):
     # Get a list of receivers categories
     receivers = message.text.split('\n')[0].strip().lower()
@@ -211,7 +247,7 @@ def broadcast_message(message):
 def save_new_media(message):
     chat = message.chat
 
-    if chat.id not in ADMIN:
+    if not is_admin(chat.id):
         return
 
     if message.photo:

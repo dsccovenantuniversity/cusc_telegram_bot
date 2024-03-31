@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from pymongo import MongoClient
 
-load_dotenv()
+load_dotenv(override=True)
 CONNECTION_STRING = os.environ["CONNECTION_STRING"]
 
 client = MongoClient(CONNECTION_STRING)
@@ -13,6 +13,35 @@ client = MongoClient(CONNECTION_STRING)
 db = client.get_default_database()
 bot_users = db.councilBotUsers
 image = db.images
+admins = db.admins
+
+
+def add_new_admin(id: int, name: str, role: str) -> None:
+    """
+    Adds a new admin to the list of admins
+    """
+    try:
+        # avoid adding the same admin twice
+        existing_admin = admins.find_one({"chat_id": str(id)})
+
+        if existing_admin is not None:
+            return
+
+        new_admin = {
+            "chat_id": id,
+            "name": name,
+            "role": role
+        }
+
+        admins.insert_one(new_admin)
+    except:
+        pass
+
+
+def get_admins():
+    """Returns a list of all admins
+    """
+    return admins.find()
 
 
 def insert_new_user(id: int, chat_type: str) -> None:

@@ -12,12 +12,13 @@ flask = "*"
 gunicorn = "*"
 pymongo = {extras = ["srv"], version = "*"}
 black = "*"
+cerberus = "*"
 
 [dev-packages]
 autopep8 = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3"
 
 [pipenv]
 allow_prereleases = true
