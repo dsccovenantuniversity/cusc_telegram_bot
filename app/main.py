@@ -16,7 +16,7 @@ load_dotenv(override=True)
 TOKEN = os.environ["TOKEN"]
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 SUPER_ADMIN = int(os.environ["SUPER_ADMIN"])
-ADMIN = {"super_admins":  [SUPER_ADMIN], "admins": []}
+ADMIN_CACHE = {"super_admins":  [SUPER_ADMIN], "admins": []}
 
 server = Flask(__name__)
 
@@ -75,13 +75,26 @@ message_dict = dict()
 def is_admin(id: int) -> bool:
     """Returns true if a user is an admin or super admin
     """
-    return (id in ADMIN["admins"]) or (id in ADMIN["super_admins"])
+    return (id in ADMIN_CACHE["admins"]) or (id in ADMIN_CACHE["super_admins"])
 
 
 def is_super_admin(id: int):
     """Returns true if a user is a super admin
     """
-    return id in ADMIN["super_admins"]
+    return id in ADMIN_CACHE["super_admins"]
+
+
+def refresh_admin_cache():
+    """Refreshes the local cache of the admins and super admins
+    """
+
+    all_admins = mongo.get_admins()
+    regular_admins = filter(lambda x: x["role"] == "admin", all_admins)
+    super_admins = filter(lambda x: x["role"] == "super_admin", all_admins)
+
+    ADMIN_CACHE["admins"] = list(map(lambda x: x["chat_id"], regular_admins))
+    ADMIN_CACHE["super_admins"] = list(
+        map(lambda x: x["chat_id"], super_admins)).append(SUPER_ADMIN)
 
 
 def send_messages(ids: List[str], func, **kwargs):
@@ -146,6 +159,9 @@ def add_admin(message):
 
     bot.send_message(chat.id, f"{data['name']} is now a/an {data['role']}")
 
+    # update admin cache
+    refresh_admin_cache()
+
 
 @bot.message_handler(func=lambda message: message.text.startswith("/sendmedia"))
 def broadcast_photo(message):
@@ -203,7 +219,7 @@ def broadcast_photo(message):
     send_messages(group_ids, func, kw_args)
 
 
-@bot.message_handler(func=lambda message: message.chat.id in ADMIN["super_admins"])
+@bot.message_handler(func=lambda message: message.chat.id in ADMIN_CACHE["super_admins"])
 def broadcast_message(message):
     # Get a list of receivers categories
     receivers = message.text.split('\n')[0].strip().lower()
@@ -275,4 +291,5 @@ def webhook():
 
 
 if __name__ == "__main__":
+    refresh_admin_cache()
     server.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
