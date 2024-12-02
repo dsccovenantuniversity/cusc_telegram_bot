@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-light">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CUSC Announcement Bot Dashboard</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    </head>
+
+    <body>
+
+        <section class="hero is-fullheight">
+            <div class="hero-body">
+                <div class="container">
+                    <div class="columns is-centered">
+                        <div class="column is-6">
+                            <div class="box">
+                                <form hx-post="/webhooks" enctype="multipart/form-data">
+                                    <p class="subtitle is-2 has-text-centered">Send a message</p>
+                                    <a href="" class="button mb-3 is-small is-light is-link">View Sent Messages</a>
+                                    <div class="field">
+                                        <p class="control has-icons-left">
+                                            <input class="input" name="password" type="password"
+                                                placeholder="Secret Sender Password" disabled />
+                                            <span class="icon is-small is-left">
+                                                <box-icon name='lock-alt' type='solid'></box-icon>
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <textarea name="message" id="" class="textarea" rows="15"
+                                                placeholder="Enter a message"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <div class="file is-medium is-centered is-info has-name"
+                                                id="file-js-example">
+                                                <label class="file-label">
+                                                    <input class="file-input" type="file" name="file" />
+                                                    <span class="file-cta">
+                                                        <span class="file-icon">
+                                                            <box-icon name='upload'></box-icon>
+                                                        </span>
+                                                        <span class="file-label">Upload file</span>
+                                                    </span>
+                                                    <span class="file-name"> No file uploaded
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="control">
+                                            <input type="submit" value="Submit"
+                                                class=" button is-primary is-fullwidth is-medium">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="column is-4">
+                            <p class="subtitle is-5">Preview</p>
+                            <div class="content box" id="preview">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+        <script src="https://unpkg.com/htmx.org@2.0.3"
+            integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
+            crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+
+        <script>
+            const fileInput = document.querySelector("#file-js-example input[type=file]");
+            fileInput.onchange = () => {
+                if (fileInput.files.length > 0) {
+                    const fileName = document.querySelector("#file-js-example .file-name");
+                    fileName.textContent = fileInput.files[0].name;
+                }
+            };
+
+            const md = markdownit();
+            const textarea = document.querySelector("[name=message]");
+
+            textarea.addEventListener(
+                "input",
+                (e) => {
+                    const preview = document.querySelector("#preview");
+                    preview.innerHTML = md.render(e.target.value);
+                },
+                false
+            )
+        </script>
+    </body>
+
+</html>
