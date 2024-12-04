@@ -1,14 +1,17 @@
 import telebot
-from flask import Flask, request, jsonify, render_template
+from flask import request, jsonify, render_template, Blueprint
 import os
 from dotenv import load_dotenv
-import json
-from utils import extract_photo_info, extract_document_info
+from .utils import extract_photo_info, extract_document_info
 import logging
-from flask_sqlalchemy import SQLAlchemy
+
+from .models import User
+from . import db
 
 logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
+
+routes_blueprint = Blueprint("routes", __name__)
 
 """
 TODO You dont need a message_handler for announcing documents, photos and messages only for receiving commands.
@@ -18,28 +21,6 @@ TODO You dont need a message_handler for announcing documents, photos and messag
 bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
 sample_chat_id = os.getenv("SAMPLE_CHAT_ID")
 webhook_url = os.getenv("WEBHOOK_URL")
-
-app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-db = SQLAlchemy(app)
-
-
-# * Models
-class User(db.Model):
-
-    id = db.Column(db.Integer, primary_key=True)
-    chat_id = db.Column(db.String(255), unique=True, nullable=False)
-    college = db.Column(db.String(255), nullable=False)
-    level = db.Column(db.String(255), nullable=False)
-    is_verified = db.Column(db.Boolean, default=False)
-
-    def __repr__(self):
-        return f"<User {self.chat_id}>"
-
-
-def load_template_json():
-    with open("app/template_message.json") as f:
-        return json.load(f)
 
 
 @bot.message_handler(func=lambda message: True)
@@ -54,7 +35,7 @@ def send_message(message: telebot.types.Message):
         )
 
 
-@app.route("/webhook", methods=["POST"])
+@routes_blueprint.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
     bot.process_new_updates([telebot.types.Update.de_json(data)])
@@ -62,7 +43,7 @@ def webhook():
     return {"ok": True}
 
 
-@app.route("/announce", methods=["POST"])
+@routes_blueprint.route("/announce", methods=["POST"])
 def announce():
     message = ""
 
@@ -85,13 +66,13 @@ def announce():
                 photo_file,
                 caption=caption,
             )
-            return
+            return {"Message": "ok"}
 
         elif file_name.endswith(("docx", "pdf", "xslx", ".pptx")):
 
             document = extract_document_info(uploaded_file)
             bot.send_document(sample_chat_id, document, caption=caption)
-            return
+            return {"Message": "ok"}
 
     bot.send_message(sample_chat_id, data["message"])
 
@@ -101,12 +82,10 @@ def announce():
     return jsonify({message: "ok"})
 
 
-@app.route("/")
+@routes_blueprint.route("/")
 def index():
     return render_template("index.html")
 
 
-if __name__ == "__main__":
-    bot.remove_webhook()
-    bot.set_webhook(webhook_url)
-    app.run(port=5000, debug=True)
+bot.remove_webhook()
+bot.set_webhook(webhook_url)
