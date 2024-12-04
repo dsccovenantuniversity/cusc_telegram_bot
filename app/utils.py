@@ -1,8 +1,8 @@
 from werkzeug.datastructures import FileStorage
 import os
 from PIL import Image
-import json
-from uuid import uuid1
+from telebot.types import InputFile
+
 
 
 def extract_photo_info(file: FileStorage):
@@ -13,14 +13,7 @@ def extract_photo_info(file: FileStorage):
     with Image.open(file_path) as img:
         width, height = img.size
 
-    return [
-        {
-            "file_id": file_path,
-            "file_unique_id": uuid1(),
-            "width": width,
-            "height": height,
-        }
-    ]
+    return InputFile(file_path), width, height
 
 
 def extract_document_info(file: FileStorage):
@@ -28,9 +21,4 @@ def extract_document_info(file: FileStorage):
     file_path = os.path.join(r"app\files", file.filename)
     file.save(file_path)
 
-    return {
-        "file_id": file_path,
-        "file_unique_id": uuid1(),
-        "file_name": file.filename,
-        "file_size": os.path.getsize(file_path),
-    }
+    return InputFile(file_path)
