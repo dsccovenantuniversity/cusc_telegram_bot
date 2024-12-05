@@ -4,7 +4,6 @@ from PIL import Image
 from telebot.types import InputFile
 
 
-
 def extract_photo_info(file: FileStorage):
     # Save the file locally
     file_path = os.path.join(r"app\files", file.filename)

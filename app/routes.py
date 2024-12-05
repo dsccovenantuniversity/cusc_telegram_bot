@@ -25,10 +25,11 @@ webhook_url = os.getenv("WEBHOOK_URL")
 
 @bot.message_handler(func=lambda message: True)
 def send_message(message: telebot.types.Message):
+    logging.debug("/start message handler is being called")
     if message.text.startswith("/start"):
-        new_user = User(chat_id=message.chat.id)
-        db.session.add(new_user)
-        db.session.commit()
+        # new_user = User(chat_id=message.chat.id)
+        # db.session.add(new_user)
+        # db.session.commit()
         bot.send_message(
             message.chat.id,
             "Hi there, you want to receive updated from the CUSC announcement bot right? \n Just enter your College and Level to verify your studentship like this: \n \n CMSS 200",
@@ -75,9 +76,6 @@ def announce():
             return {"Message": "ok"}
 
     bot.send_message(sample_chat_id, data["message"])
-
-    # update = telebot.types.Update.de_json(template_json)
-    # bot.process_new_updates([update])
 
     return jsonify({message: "ok"})
 
