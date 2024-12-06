@@ -28,6 +28,39 @@
                                             </span>
                                         </p>
                                     </div>
+                                    <div class="columns">
+                                        <div class="column is-half">
+                                            <div class="field">
+                                                <div class="control">
+                                                    <div class="select">
+                                                        <select name="colleges">
+                                                            <option>All Colleges</option>
+                                                            <option>CMSS Students</option>
+                                                            <option>CST Students</option>
+                                                            <option>COE Students</option>
+                                                            <option>CLDS Students</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="column is-half">
+                                            <div class="field">
+                                                <div class="control">
+                                                    <div class="select">
+                                                        <select name="levels">
+                                                            <option>All Levels</option>
+                                                            <option>100 Level Students</option>
+                                                            <option>200 Level Students</option>
+                                                            <option>300 Level Students</option>
+                                                            <option>400 Level Students</option>
+                                                            <option>500 Level Students</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="field">
                                         <div class="control">
                                             <textarea name="message" id="" class="textarea" rows="15"
@@ -97,6 +130,30 @@
                     preview.innerHTML = md.render(e.target.value);
                 },
                 false
+            )
+
+            function disableOptions(element, optionsToDisable) {
+                for (let i = 0; i < element.options.length; i++) {
+                    if (optionsToDisable.includes(element.options[i].value)) {
+                        element.options[i].disabled = true;
+                    } else {
+                        element.options[i].disabled = false;
+                    }
+                }
+            }
+
+            const levelSelect = document.querySelector("[name=levels]");
+            const collegeSelect = document.querySelector('[name=colleges]');
+            levelSelect.addEventListener(
+                'click',
+                (e) => {
+                    if (levelSelect.value === "500 Level Students") {
+                        disableOptions(collegeSelect, ["CMSS Students", "CLDS Students"]);
+                    }
+                    else {
+                        disableOptions(collegeSelect, []);
+                    }
+                }
             )
         </script>
     </body>
