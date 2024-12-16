@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date
 from dotenv import load_dotenv
 import os
 
@@ -27,3 +27,16 @@ class User(Base):
 
     def __repr__(self):
         return f"<User {self.chat_id}>"
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True)
+    message = Column(String, nullable=False)
+    college = Column(String)
+    level = Column(Integer)
+    document_name = Column(String)
+    date = Column(Date)
+
+    def __repr__(self):
+        return f"<Message {self.message}>"

@@ -4,6 +4,12 @@ from PIL import Image
 from telebot.types import InputFile
 from colorama import init, Fore, Style
 import logging
+import cloudinary
+import cloudinary.uploader
+from dotenv import load_dotenv
+import requests
+
+load_dotenv()
 
 
 init(autoreset=True)
@@ -26,12 +32,21 @@ def extract_photo_info(file: FileStorage):
 
 
 def extract_document_info(file: FileStorage):
-    # Save the file locally
-    file_path = os.path.join(r"app\files", file.filename)
-    if not os.path.exists(file_path):
-        file.save(file_path)
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    )
 
-    return InputFile(file_path)
+
+    # * Upload file to cloudinary
+    upload_result = cloudinary.uploader.upload(file, public_id = file.filename, unique_filename = False, resource_type = "raw")
+    upload_url = upload_result["secure_url"]
+
+    logging.info(upload_url)
+
+    # * Use requests to download file from url
+    return upload_url
 
 
 def parse_message(message: str):

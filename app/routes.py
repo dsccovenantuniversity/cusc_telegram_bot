@@ -1,17 +1,16 @@
 import telebot
-from flask import request, jsonify, render_template, Blueprint
+from flask import request, render_template, Blueprint
 import os
 from dotenv import load_dotenv
 from .utils import (
-    extract_photo_info,
-    extract_document_info,
     parse_message,
     ParseError,
     CustomFormatter,
 )
 import logging
 
-from .models import User, session
+from .models import User, session, Message
+from datetime import date
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
@@ -28,12 +27,12 @@ TODO You dont need a message_handler for announcing documents, photos and messag
 """
 
 bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
-sample_chat_id = os.getenv("SAMPLE_CHAT_ID")
 webhook_url = os.getenv("WEBHOOK_URL")
 
 
 @bot.message_handler(commands=["start"])
 def send_start_message(message: telebot.types.Message):
+    logging.info('im being hit')
     if message.text.startswith("/start"):
         logging.info("the /start command is being called")
 
@@ -93,8 +92,8 @@ def send_user_info(message: telebot.types.Message):
 @routes_blueprint.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
+    logging.info(data)
     bot.process_new_updates([telebot.types.Update.de_json(data)])
-
     return {"ok": True}
 
 
@@ -108,7 +107,17 @@ def announce():
     data = request.form
 
     if not data["message"] and not files:
-        return jsonify({"message": "No data sent"})
+        return render_template('messages/failure.html', reason = "No message or file was sent")
+
+    message = Message(
+        message=data["message"],
+        college=college,
+        level=level,
+        document_name=files["file"].filename if files else None,
+        date = date.today()
+    )
+    session.add(message)
+    session.commit()
 
     if college == "All":
         college = None
@@ -126,47 +135,44 @@ def announce():
     all_users = query.all()
 
     if files:
-        uploaded_file = request.files["file"]
-
+        uploaded_file = files["file"]
         file_name = uploaded_file.filename
 
-        caption = files["file"].filename if not data["message"] else data["message"]
+        caption = file_name if not data["message"] else data["message"]
 
         if file_name.endswith(("jpg", "jpeg", "png")):
-            photo_file, photo_width, photo_height = extract_photo_info(uploaded_file)
 
             for user in all_users:
-                bot.send_photo(
-                    user.chat_id,
-                    photo_file,
+                bot.send_photo(user, uploaded_file, caption)
+                return render_template('messages/success.html')
+
+        elif file_name.endswith(("docx", "pdf", "xlsx", "pptx")):
+
+            for user in all_users:
+                bot.send_document(
+                    user,
+                    uploaded_file.stream,
                     caption=caption,
+                    visible_file_name=file_name,
                 )
-                logging.info(f"Photo sent to {user.chat_id}")
-                photo_file, photo_width, photo_height = extract_photo_info(
-                    uploaded_file
-                )
-            return {"Message": "ok"}
 
-        elif file_name.endswith(("docx", "pdf", "xlsx", ".pptx")):
+            return render_template('messages/success.html')
 
-            document = extract_document_info(uploaded_file)
-            for user in all_users:
-                bot.send_document(user.chat_id, document, caption=caption)
-                document = extract_document_info(uploaded_file)
-
-            return {"Message": "ok"}
-
-    if data:
-        for user in all_users:
-            bot.send_message(user.chat_id, data["message"])
-
-    return jsonify({message: "ok"})
+    # for user in all_users:
+    #     bot.send_message(user.chat_id, data["message"])
+    
+    bot.send_message("5588640228", data['message'])
+    return render_template('messages/success.html')
 
 
 @routes_blueprint.route("/")
 def index():
     return render_template("index.html")
 
+@routes_blueprint.route("/messages", methods=["GET"])
+def messages():
+    messages = session.query(Message).all()
+    return render_template("messages.html", messages=messages)
 
 bot.remove_webhook()
 bot.set_webhook(webhook_url)
