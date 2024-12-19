@@ -1,13 +1,13 @@
 from werkzeug.datastructures import FileStorage
 import os
 from PIL import Image
-from telebot.types import InputFile
+from telebot import TeleBot
 from colorama import init, Fore, Style
+from app.models import User, session
 import logging
 import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
-import requests
 
 load_dotenv()
 
@@ -18,36 +18,41 @@ init(autoreset=True)
 class ParseError(Exception):
     pass
 
+def setup_user(bot: TeleBot, chat_id: int, message: str):
+    """
+    * sets up a user in the database
+    """
+    current_user = session.query(User).filter_by(chat_id = chat_id).first()
 
-def extract_photo_info(file: FileStorage):
-    # Save the file locally
-    file_path = os.path.join(r"app\files", file.filename)
-    if not os.path.exists(file_path):
-        file.save(file_path)
+    if not current_user:
+        if message == "/start":
+            new_user = User(chat_id = chat_id)
+            session.add(new_user)
+            session.commit()
+            bot.send_message(chat_id, "Welcome to the CUSC announcement bot, please enter your college and level to verify your studentship like this: \n \n CMSS 200")
+            logging.info(f"New user created, chat_id = {chat_id}")
+            return
+        else:
+            bot.send_message(chat_id, "Please run the /start command to record yourself")
+            return
+    else:
+        try:
+            user_info = parse_message(message)
+            
+            if current_user.college or current_user.level:
+                bot.send_message(chat_id, "You have already been verified")
+                return
+            else:
+                current_user.college = user_info[0]
+                current_user.level = user_info[1]
+                session.commit()
+                bot.send_message(chat_id, "You have been successfully verified")
+                return
 
-    with Image.open(file_path) as img:
-        width, height = img.size
-
-    return InputFile(file_path), width, height
-
-
-def extract_document_info(file: FileStorage):
-    cloudinary.config(
-        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-        api_key=os.getenv("CLOUDINARY_API_KEY"),
-        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-    )
-
-
-    # * Upload file to cloudinary
-    upload_result = cloudinary.uploader.upload(file, public_id = file.filename, unique_filename = False, resource_type = "raw")
-    upload_url = upload_result["secure_url"]
-
-    logging.info(upload_url)
-
-    # * Use requests to download file from url
-    return upload_url
-
+        except ParseError as error:
+            bot.send_message(chat_id, str(error))
+            logging.error(error)
+            return
 
 def parse_message(message: str):
     """
