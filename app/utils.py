@@ -1,12 +1,7 @@
-from werkzeug.datastructures import FileStorage
-import os
-from PIL import Image
 from telebot import TeleBot
 from colorama import init, Fore, Style
 from app.models import User, session
 import logging
-import cloudinary
-import cloudinary.uploader
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -61,6 +56,8 @@ def parse_message(message: str):
     if " " not in message:
         raise ParseError("Invalid message format")
     values = message.split(" ")
+
+    if len(values) != 2: raise ParseError("Invalid message format")
     college = values[0]
     level = values[1]
     if college not in ["CMSS", "COE", "CST", "CLDS"]:

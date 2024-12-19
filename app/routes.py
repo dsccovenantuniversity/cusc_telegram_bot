@@ -1,5 +1,5 @@
 import telebot
-from flask import request, render_template, Blueprint
+from flask import request, render_template, Blueprint, send_file
 import os
 from dotenv import load_dotenv
 from .utils import (
@@ -19,11 +19,6 @@ for handler in logging.root.handlers:
 load_dotenv()
 
 routes_blueprint = Blueprint("routes", __name__)
-
-"""
-TODO You dont need a message_handler for announcing documents, photos and messages only for receiving commands.
-? Read https://chatgpt.com/c/674e700d-ca64-8011-b3dd-679bb154e332 for more info
-"""
 
 bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
 webhook_url = os.getenv("WEBHOOK_URL")
@@ -119,6 +114,11 @@ def index():
 def messages():
     messages = session.query(Message).all()
     return render_template("messages.html", messages=messages)
+
+@routes_blueprint.route("/downloaddb", methods=["GET"])
+def download_db():
+    file_path = "../db.sqlite3"
+    return send_file(file_path)
 
 bot.remove_webhook()
 bot.set_webhook(webhook_url)
