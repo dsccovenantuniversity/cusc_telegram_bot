@@ -1,23 +1,28 @@
 {
-    "update_id": 123456789,
-    "message": {
-      "message_id": 1,
+  "update_id": 961871065,
+  "message": {
+      "message_id": 420,
       "from": {
-        "id": 123456789,
-        "is_bot": false,
-        "first_name": "John",
-        "last_name": "Doe",
-        "username": "johndoe",
-        "language_code": "en"
+          "id": 5588640228,
+          "is_bot": false,
+          "first_name": "𝙴𝚣𝚎𝚔𝚒𝚎𝚕(22𝙲𝙶____4)",
+          "username": "RoundedAndSquareCorners",
+          "language_code": "en"
       },
       "chat": {
-        "id": 123456789,
-        "first_name": "John",
-        "last_name": "Doe",
-        "username": "johndoe",
-        "type": "private"
+          "id": 5588640228,
+          "first_name": "𝙴𝚣𝚎𝚔𝚒𝚎𝚕(22𝙲𝙶____4)",
+          "username": "RoundedAndSquareCorners",
+          "type": "private"
       },
-      "date": 1609459200,
-      "text": "Hello, world!"
-    }
+      "date": 1734644844,
+      "text": "/start",
+      "entities": [
+          {
+              "offset": 0,
+              "length": 6,
+              "type": "bot_command"
+          }
+      ]
   }
+}

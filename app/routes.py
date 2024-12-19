@@ -3,8 +3,7 @@ from flask import request, render_template, Blueprint
 import os
 from dotenv import load_dotenv
 from .utils import (
-    parse_message,
-    ParseError,
+    setup_user,
     CustomFormatter,
 )
 import logging
@@ -30,70 +29,17 @@ bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
 webhook_url = os.getenv("WEBHOOK_URL")
 
 
-@bot.message_handler(commands=["start"])
-def send_start_message(message: telebot.types.Message):
-    logging.info('im being hit')
-    if message.text.startswith("/start"):
-        logging.info("the /start command is being called")
-
-        try:
-            current_user = (
-                session.query(User).filter_by(chat_id=message.chat.id).first()
-            )
-            if current_user:
-                bot.send_message(
-                    message.chat.id,
-                    "You are already a verified user",
-                )
-                return
-            new_user = User(chat_id=message.chat.id)
-            session.add(new_user)
-            session.commit()
-            bot.send_message(
-                message.chat.id,
-                "Hi there, you want to receive updates from the CUSC announcement bot right? \n Just enter your College and Level to verify your studentship like this: \n \n CMSS 200",
-            )
-        except Exception as e:
-            logging.error(e)
-
-        logging.info("New user created")
-
-
-@bot.message_handler(func=lambda message: True)
-def send_user_info(message: telebot.types.Message):
-    user = session.query(User).filter_by(chat_id=message.chat.id).first()
-    if not user:
-        bot.reply_to(
-            message,
-            "You are not a recorded user. \n please run the /start command to record yourself",
-        )
-    if user.college and user.level:
-        bot.reply_to(
-            message, "Please your college and level have been recorded already"
-        )
-        return
-    values = None
-    try:
-        values = parse_message(message.text)
-    except ParseError as error:
-        bot.send_message(message.chat.id, str(error))
-        logging.error(error)
-
-    if values:
-        user.college = values[0]
-        user.level = values[1]
-        session.commit()
-        logging.info(
-            f"User {user.chat_id} has been updated with {values[0]} and {values[1]}"
-        )
-        bot.send_message(message.chat.id, "You have been successfully verified")
-
 
 @routes_blueprint.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
     logging.info(data)
-    bot.process_new_updates([telebot.types.Update.de_json(data)])
+
+    text = data["message"]["text"]
+    chat_id = data["message"]["chat"]["id"]
+
+    setup_user(bot, chat_id, text)
+
     return {"ok": True}
 
 
@@ -158,10 +104,10 @@ def announce():
 
             return render_template('messages/success.html')
 
-    # for user in all_users:
-    #     bot.send_message(user.chat_id, data["message"])
+    for user in all_users:
+        bot.send_message(user.chat_id, data["message"])
     
-    bot.send_message("5588640228", data['message'])
+
     return render_template('messages/success.html')
 
 
