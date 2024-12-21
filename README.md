@@ -1,41 +1,42 @@
-# Student Council Info bot
+# Student Council Announcement Bot
 
-A telegram bot that boadcasts messages from a set of Admins to anyone who starts the bot
+The aim of this bot is to relay information to Covenant University Students (_which can be filtered by College or Level or both_).
 
-## Description
+## Table of Contents
+- [Running this bot](#running-this-bot)
+- [Contributing to the code base 🌿](#contributing-to-the-code-base-🌿)
+- [Deploying this bot](#deploying-this-bot)
 
-The bot recieves messages from a particular admin abd broadcasts it to all users, allowing for faster and more personal message deiery services
+## Running this bot
+It is recommended that you have `ngrok` installed or any other tunneling services as Telegram doesn't allow setting localhosts for webhooks.
 
-## Getting Started
+1. Set up a virtual environment:
 
-### Depenedencies
+  ```bash
+  python -m venv .venv
+  ```
 
-- Python
-- Flask
+1. Install all dependencies:
 
-### Installing
+  ```bash
+  pip install -r requirements.lock
+  ```
 
-Check out the [bot](https://t.me/studentcouncilcu_bot/) on telgram
+1. Activate the virtual environment:
 
-### Deployment
+  ```bash
+  .venv/Scripts/activate
+  ```
 
-- Render Deployment: See `example.env` file for environment variables.
-  - **Required**: Add a `requirements.txt` file or a `Pipfile` for render to install dependencies. For `Pipfile`, remember to update the build command on Render
+1. Observe [`example.env`](example.env) for the list of environment variables that should be provided.
 
-## Help
+## Contributing to the code base 🌿
+If you come across this bot, you are free to make and contribute changes to it by:
+- 🍴 Forking this repo 
+- ✏️ Making the required changes
+- ✉️ Submitting a pull request.
 
-Simply block the bot if tired of receiving messages
+All contributions are highly appreciated ⭐
 
-## Authors
-
-Contributors names and contact info
-
-HackerManPeter
-
-- [LinkedIn](www.linkedin.com/in/pebueku)
-- [dev.to](https://dev.to/hackermanpeter)
-
-Galadima Israel
-
-- [Telegram](https://t.me/israelsgalaxy)
-- [GitHub](https://github.com/israelsgalaxy)
+## Deploying this bot
+This bot was originally deployed on Render and a live version of this bot can be found [here](https://cusc-telegram-bot-plth.onrender.com).
