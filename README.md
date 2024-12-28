@@ -16,19 +16,19 @@ It is recommended that you have `ngrok` installed or any other tunneling service
   python -m venv .venv
   ```
 
-1. Install all dependencies:
+2. Install all dependencies:
 
   ```bash
   pip install -r requirements.lock
   ```
 
-1. Activate the virtual environment:
+3. Activate the virtual environment:
 
   ```bash
   .venv/Scripts/activate
   ```
 
-1. Observe [`example.env`](example.env) for the list of environment variables that should be provided.
+4. Observe [`example.env`](example.env) for the list of environment variables that should be provided.
 
 ## Contributing to the code base 🌿
 If you come across this bot, you are free to make and contribute changes to it by:
