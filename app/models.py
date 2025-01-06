@@ -1,42 +1,69 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Column, Integer, String, Date
-from dotenv import load_dotenv
 import os
+from supabase import create_client, Client
+import logging
 
-load_dotenv()
+url: str = os.getenv("SUPABASE_URL")
+key: str = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 
-Base = declarative_base()
+def create_user(chat_id: int):
+    """
+    * creates a new user in the database
+    """
+    response = supabase.table("users").insert({"chat_id": chat_id}).execute()
+    return response
 
-Engine = create_engine(
-    os.getenv("DATABASE_URL"), echo=bool(os.getenv("SQLALCHEMY_ECHO"))
-)
+def get_user_info(chat_id: str):
+    """
+    * checks if a user exists in the database
+    """
+    response = supabase.table("users").select().eq("chat_id", chat_id).execute()
 
-Session = sessionmaker(bind = Engine)
-session = Session()
+    print(response)
 
-class User(Base):
-    __tablename__ = "users"
+    if response.data:
+        return response.data[0]
+    else:
+        return None
 
-    id = Column(Integer, primary_key=True)
-    chat_id = Column(String, unique=True)
-    college = Column(String)
-    level = Column(Integer)
+def update_user_profile(chat_id, level: str, college: str):
+    """
+    * updates the user's level and college
+    """
+    response = supabase.table("users").update({"college": college, "level": level}).eq("chat_id", chat_id).execute()
+    return response
 
-    def __repr__(self):
-        return f"<User {self.chat_id}>"
+def add_message(text: str, college: str, level: int):
+    """
+    * adds a message to the database
+    """
+    response = supabase.table("messages").insert({"message": text, "college": college, "level": level}).execute()
+    return response
 
-class Message(Base):
-    __tablename__ = "messages"
+def filter_users(college: str, level: str):
+    """
+    * filters messages by college and level
+    """
+    query = supabase.table("users")
+    if college == "All" and level == "All":
+        response = query.select().execute()
 
-    id = Column(Integer, primary_key=True)
-    message = Column(String, nullable=False)
-    college = Column(String)
-    level = Column(Integer)
-    document_name = Column(String)
-    date = Column(Date)
+    elif level == "All":
+        response = query.select().eq("college", college).execute()
+    
+    elif college == "All":
+        response = query.select().eq("level", level).execute()  
+    
+    else:
+        response = query.select().eq("college", college).eq("level", level).execute()
+    
+    logging.info(response.data)
+    return response 
 
-    def __repr__(self):
-        return f"<Message {self.message}>"
+def get_messages():
+    """
+    * gets all messages from the database
+    """
+    response = supabase.table("messages").select().execute()
+    return response.data

@@ -4,7 +4,7 @@
 
     <section class="hero">
       <div class="hero-body">
-        <div class="container is-flex is-justify-content-center">
+        <div class="container is-fluid is-flex is-justify-content-center">
             <div class="box">
                 <a href="{{url_for('routes.index')}}" class="button is-primary">Announce Message</a>
                 <table class="table is-fullwidth is-striped is-hoverable">
@@ -13,24 +13,22 @@
                             <th>Message</th>
                             <th>College</th>
                             <th>Level</th>
-                            <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for message in messages %}
                             <tr>
                                 <td>
-                                    {% if message.message %}    
-                                        {{ message.message }}
+                                    {% if message["message"] %}    
+                                        {{ message["message"] }}
 
                                     {% else %}
                                         <span class="is-size-7 has-text-primary-30">No message text was sent</span>
                                     {% endif %}
 
                                 </td>
-                                <td>{{ message.college }}</td>
-                                <td>{{ message.level }} Level</td>
-                                <td>{{ message.date.strftime("%A, %B %d, %Y")}}</td>
+                                <td>{{ message["college"] }}</td>
+                                <td>{{ message["level"] }} Level</td>
                             </tr>
                         {% endfor %}
                     </tbody>

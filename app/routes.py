@@ -1,5 +1,5 @@
 import telebot
-from flask import request, render_template, Blueprint, send_file
+from flask import request, render_template, Blueprint
 import os
 from dotenv import load_dotenv
 from .utils import (
@@ -7,9 +7,8 @@ from .utils import (
     CustomFormatter,
 )
 import logging
+from app.models import add_message, filter_users, get_messages
 
-from .models import User, session, Message
-from datetime import date
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
@@ -40,7 +39,6 @@ def webhook():
 
 @routes_blueprint.route("/announce", methods=["POST"])
 def announce():
-    message = ""
 
     college = request.form["colleges"].split(" ")[0]
     level = request.form["levels"].split(" ")[0]
@@ -50,31 +48,10 @@ def announce():
     if not data["message"] and not files:
         return render_template('messages/failure.html', reason = "No message or file was sent")
 
-    message = Message(
-        message=data["message"],
-        college=college,
-        level=level,
-        document_name=files["file"].filename if files else None,
-        date = date.today()
-    )
-    session.add(message)
-    session.commit()
+    add_message(data["message"], college, level)
+    
 
-    if college == "All":
-        college = None
-
-    if level == "All":
-        level = None
-
-    query = session.query(User)
-    if college:
-        query = query.filter(User.college == college)
-
-    if level:
-        query = query.filter(User.level == int(level))
-
-    all_users = query.all()
-
+    all_recipients = filter_users(college, level).data
     if files:
         uploaded_file = files["file"]
         file_name = uploaded_file.filename
@@ -83,15 +60,15 @@ def announce():
 
         if file_name.endswith(("jpg", "jpeg", "png")):
 
-            for user in all_users:
+            for user in all_recipients:
                 bot.send_photo(user.chat_id, uploaded_file, caption)
                 return render_template('messages/success.html')
 
         elif file_name.endswith(("docx", "pdf", "xlsx", "pptx")):
 
-            for user in all_users:
+            for user in all_recipients:
                 bot.send_document(
-                    user.chat_id,
+                    user["chat_id"],
                     uploaded_file.stream,
                     caption=caption,
                     visible_file_name=file_name,
@@ -99,8 +76,8 @@ def announce():
 
             return render_template('messages/success.html')
 
-    for user in all_users:
-        bot.send_message(user.chat_id, data["message"])
+    for user in all_recipients:
+        bot.send_message(user["chat_id"], data["message"])
     
 
     return render_template('messages/success.html')
@@ -112,13 +89,8 @@ def index():
 
 @routes_blueprint.route("/messages", methods=["GET"])
 def messages():
-    messages = session.query(Message).all()
+    messages = get_messages()
     return render_template("messages.html", messages=messages)
-
-@routes_blueprint.route("/downloaddb", methods=["GET"])
-def download_db():
-    file_path = "../db.sqlite3"
-    return send_file(file_path)
 
 bot.remove_webhook()
 bot.set_webhook(webhook_url)

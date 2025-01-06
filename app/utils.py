@@ -1,6 +1,7 @@
 from telebot import TeleBot
 from colorama import init, Fore, Style
-from app.models import User, session
+from app.models import create_user, get_user_info, update_user_profile
+
 import logging
 from dotenv import load_dotenv
 
@@ -17,13 +18,11 @@ def setup_user(bot: TeleBot, chat_id: int, message: str):
     """
     * sets up a user in the database
     """
-    current_user = session.query(User).filter_by(chat_id = chat_id).first()
+    current_user = get_user_info(chat_id)
 
     if not current_user:
         if message == "/start":
-            new_user = User(chat_id = chat_id)
-            session.add(new_user)
-            session.commit()
+            create_user(chat_id)
             bot.send_message(chat_id, "Welcome to the CUSC announcement bot, please enter your college and level to verify your studentship like this: \n \n CMSS 200")
             logging.info(f"New user created, chat_id = {chat_id}")
             return
@@ -34,15 +33,14 @@ def setup_user(bot: TeleBot, chat_id: int, message: str):
         try:
             user_info = parse_message(message)
             
-            if current_user.college or current_user.level:
+            if current_user['college'] or current_user["level"]:
                 bot.send_message(chat_id, "You have already been verified")
                 return
             else:
-                current_user.college = user_info[0]
-                current_user.level = user_info[1]
-                session.commit()
+                update_user_profile(chat_id, user_info[1], user_info[0])
                 bot.send_message(chat_id, "You have been successfully verified")
                 return
+
 
         except ParseError as error:
             bot.send_message(chat_id, str(error))
