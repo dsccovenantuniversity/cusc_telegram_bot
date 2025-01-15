@@ -39,4 +39,4 @@ If you come across this bot, you are free to make and contribute changes to it b
 All contributions are highly appreciated ⭐
 
 ## Deploying this bot
-This bot was originally deployed on Render and a live version of this bot can be found [here](https://cusc-telegram-bot-plth.onrender.com).
+This bot was originally deployed on railway and a live version of this bot can be found [here](https://cusctelegrambot-production.up.railway.app/).
