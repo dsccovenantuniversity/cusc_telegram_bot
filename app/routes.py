@@ -2,10 +2,7 @@ import telebot
 from flask import request, render_template, Blueprint
 import os
 from dotenv import load_dotenv
-from .utils import (
-    setup_user,
-    CustomFormatter,
-)
+from .utils import setup_user, CustomFormatter, mass_send_document, mass_send_photos
 import logging
 from app.models import add_message, filter_users, get_messages
 
@@ -63,18 +60,16 @@ def announce():
         caption = file_name if not data["message"] else data["message"]
 
         if file_name.endswith(("jpg", "jpeg", "png")):
-            for user in all_recipients:
-                bot.send_photo(user.chat_id, uploaded_file, caption)
-                return render_template("messages/success.html")
+            mass_send_photos(all_recipients, bot, uploaded_file.stream, )
 
         elif file_name.endswith(("docx", "pdf", "xlsx", "pptx")):
-            for user in all_recipients:
-                bot.send_document(
-                    user["chat_id"],
-                    uploaded_file.stream,
-                    caption=caption,
-                    visible_file_name=file_name,
-                )
+            mass_send_document(
+                all_recipients,
+                bot,
+                uploaded_file.stream,
+                filename=uploaded_file.filename,
+                caption = caption
+            )
 
             return render_template("messages/success.html")
 
