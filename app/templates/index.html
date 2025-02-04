@@ -10,9 +10,10 @@
             <div class="columns is-centered">
                 <div class="column is-6">
                     <div class="box">
-                        <form hx-post="/announce" enctype="multipart/form-data">
+                        <form hx-post="/announce" enctype="multipart/form-data" hx-indicator="#loader">
                             <p class="subtitle is-2 has-text-centered">Send a message</p>
-                            <a href="{{url_for('routes.messages')}}" class="button mb-3 is-small is-light is-link">View Sent Messages</a>
+                            <a href="{{url_for('routes.messages')}}" class="button mb-3 is-small is-light is-link">View
+                                Sent Messages</a>
                             <div class="field">
                                 <p class="control has-icons-left">
                                     <input class="input" name="password" type="password"
@@ -84,13 +85,13 @@
                                         class=" button is-primary is-fullwidth is-medium">
                                 </div>
                             </div>
+                            <span id="loader"></span>
                         </form>
                     </div>
                 </div>
                 <div class="column is-4">
                     <p class="subtitle is-5">Preview</p>
                     <div class="content box" id="preview">
-
                     </div>
                 </div>
             </div>
