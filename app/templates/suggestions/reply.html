@@ -1,0 +1,61 @@
+{% extends "./base.html" %}
+
+{% block tabs %}
+
+<div class="tabs is-boxed">
+    <ul>
+        <li>
+            <a href="{{url_for('suggestions.announce')}}">
+                <span class="icon"><box-icon name='volume-full'></box-icon></span>
+                <span>Announce</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{url_for('suggestions.messages')}}">
+                <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
+                <span>Messages</span>
+            </a>
+        </li>
+        <li class="">
+            <a href="{{url_for('suggestions.index')}}">
+                <span class="icon"><box-icon name='star' type='solid' class="has-text-primary-50"></box-icon></span>
+                <span>Suggestions</span>
+            </a>
+        </li>
+        <li class="is-active">
+            <a href="{{url_for('suggestions.reply')}}">
+                <span class="icon"><box-icon name='hot' type='solid'></box-icon></span>
+                <span>Reply</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <p class="title is-2">Reply</p>
+    <hr>
+    <div class="columns">
+        <div class="column is-9">
+            <div class="content mb-5">
+                <h4>Message:</h4>
+                Your measurement function can then, in a loop, generate new states and count the steps each of the robots takes. When it has generated enough measurements, it can use console.log to output the average for each robot, which is the total number of steps taken divided by the number of measurements.
+            </div>
+            <div class="columns">
+                <div class="column is-6">
+                    <form action="">
+                        <div class="field">
+                            <div class="control">
+                                <textarea class="textarea" rows="10"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="" class="button is-primary">Send</a>
+</div>
+{% endblock %}

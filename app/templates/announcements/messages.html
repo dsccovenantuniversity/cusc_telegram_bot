@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block tabs %}
+<div class="tabs is-boxed">
+    <ul>
+        <li>
+            <a href="{{url_for('suggestions.announce')}}">
+                <span class="icon"><box-icon name='volume-full'></box-icon></span>
+                <span>Announce</span>
+            </a>
+        </li>
+        <li class="is-active">
+            <a href="{{url_for('suggestions.messages')}}">
+                <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
+                <span>Messages</span>
+            </a>
+        </li>
+        <li class="">
+            <a href="{{url_for('suggestions.index')}}">
+                <span class="icon"><box-icon name='star' type='solid' class="has-text-primary-50"></box-icon></span>
+                <span>Suggestions</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{url_for('suggestions.reply')}}">
+                <span class="icon"><box-icon name='hot' type='solid'></box-icon></span>
+                <span>Reply</span>
+            </a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="box">
+    <p class="title is-1">Messages</p>
+    <hr>
+    <div class="columns">
+        <div class="column is-7">
+            <div class="box">
+                <div class="content">
+                    Your measurement function can then, in a loop, generate new states and
+                    count the steps each of the robots takes. When it has generated enough mea
+                    surements, it can use console.log to output the average for each robot, which
+                    is the total number of steps taken divided by the number of measurements.
+                    <p class="has-text-weight-bold mt-3">CMSS, 300 Level</p>
+                    <p class="is-size-7 has-text-primary has-text-semibold">12th December 2024; 3:45pm</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

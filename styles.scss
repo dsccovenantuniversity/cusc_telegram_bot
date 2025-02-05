@@ -1,0 +1,19 @@
+// Set your brand colors
+$purple: #6320EE;
+
+
+// Path to Bulma's sass folder
+@use "bulma/sass" with (
+  $family-primary: '"Roboto", system-ui',
+  $primary: $purple,
+);
+
+// Import the Google Font
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+// Override styles manually
+.textarea {
+  field-sizing: content;
+  min-height: 15rem;
+}

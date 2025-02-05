@@ -10,11 +10,8 @@ def create_app(config="development"):
 
     config_dict[config].init_app(app)
 
-    from .routes import routes_blueprint
-    app.register_blueprint(routes_blueprint, url_prefix="/")
-
-    from . import routes
-    from . import models
+    from .suggestions import suggestions
+    app.register_blueprint(suggestions, url_prefix="/suggestions")
 
     @app.errorhandler(500)
     def server_error():

@@ -1,0 +1,119 @@
+{% extends './base.html' %}
+
+{% block tabs %}
+<div class="tabs is-boxed">
+    <ul>
+        <li class="is-active">
+            <a href="{{url_for('suggestions.announce')}}">
+                <span class="icon"><box-icon name='volume-full'></box-icon></span>
+                <span>Announce</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{url_for('suggestions.messages')}}">
+                <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
+                <span>Messages</span>
+            </a>
+        </li>
+        <li class="">
+            <a href="{{url_for('suggestions.index')}}">
+                <span class="icon"><box-icon name='star' type='solid' class="has-text-primary-50"></box-icon></span>
+                <span>Suggestions</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{url_for('suggestions.reply')}}">
+                <span class="icon"><box-icon name='hot' type='solid'></box-icon></span>
+                <span>Reply</span>
+            </a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- FIXME There is an issue with this select field on mobile -->
+
+<div class="box">
+    <div class="columns">
+        <div class="column is-4">
+            <form hx-post="/announce" enctype="multipart/form-data" hx-indicator="#loader">
+                <p class="title is-1">Announce</p>
+                <div class="field">
+                    <p class="control has-icons-left">
+                        <input class="input" name="password" type="password" placeholder="Secret Sender Password"
+                            disabled />
+                        <span class="icon is-small is-left">
+                            <box-icon name='lock-alt' type='solid'></box-icon>
+                        </span>
+                    </p>
+                </div>
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="field">
+                            <div class="control">
+                                <div class="select">
+                                    <select name="colleges">
+                                        <option>All Colleges</option>
+                                        <option>CMSS Students</option>
+                                        <option>CST Students</option>
+                                        <option>COE Students</option>
+                                        <option>CLDS Students</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column is-half">
+                        <div class="field">
+                            <div class="control">
+                                <div class="select">
+                                    <select name="levels">
+                                        <option>All Levels</option>
+                                        <option>100 Level Students</option>
+                                        <option>200 Level Students</option>
+                                        <option>300 Level Students</option>
+                                        <option>400 Level Students</option>
+                                        <option>500 Level Students</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <textarea name="message" id="" class="textarea" rows="15"
+                            placeholder="Enter a message"></textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <div class="file is-medium is-centered is-info has-name" id="file-js-example">
+                            <label class="file-label">
+                                <input class="file-input" type="file" name="file" />
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <box-icon name='upload'></box-icon>
+                                    </span>
+                                    <span class="file-label">Upload file</span>
+                                </span>
+                                <span class="file-name"> No file uploaded
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input type="submit" value="Submit" class=" button is-primary is-fullwidth is-medium">
+                    </div>
+                </div>
+                <span id="loader"></span>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

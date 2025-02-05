@@ -1,10 +1,11 @@
 import telebot
-from flask import request, render_template, Blueprint
+from flask import request, render_template
 import os
 from dotenv import load_dotenv
-from .utils import setup_user, CustomFormatter, mass_send_document, mass_send_photos
+from ..utils.utils import setup_user, CustomFormatter, mass_send_document, mass_send_photos
 import logging
 from app.models import add_message, filter_users, get_messages
+from . import announcements
 
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -14,13 +15,11 @@ for handler in logging.root.handlers:
 
 load_dotenv()
 
-routes_blueprint = Blueprint("routes", __name__)
-
 bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
 webhook_url = os.getenv("WEBHOOK_URL")
 
 
-@routes_blueprint.route("/webhook", methods=["POST"])
+announcements.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
     logging.info(data)
@@ -38,7 +37,7 @@ def webhook():
     return {"ok": True}
 
 
-@routes_blueprint.route("/announce", methods=["POST"])
+announcements.route("/announce", methods=["POST"])
 def announce():
     college = request.form["colleges"].split(" ")[0]
     level = request.form["levels"].split(" ")[0]
@@ -79,12 +78,12 @@ def announce():
     return render_template("messages/success.html")
 
 
-@routes_blueprint.route("/")
+announcements.route("/")
 def index():
     return render_template("index.html")
 
 
-@routes_blueprint.route("/messages", methods=["GET"])
+announcements.route("/messages", methods=["GET"])
 def messages():
     messages = get_messages()
     return render_template("messages.html", messages=messages)

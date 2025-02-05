@@ -1,0 +1,16 @@
+{
+  "name": "cusc_telegram_bot_styles",
+  "version": "1.0.0",
+  "description": "The aim of this bot is to relay information to Covenant University Students (_which can be filtered by College or Level or both_).",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-bulma": "sass --load-path=node_modules styles.scss ./app/static/css/bulma.css"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bulma": "^1.0.3",
+    "sass": "^1.83.4"
+  }
+}
