@@ -1,69 +1,70 @@
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Uuid,
+    DateTime,
+    ForeignKey,
+    Text,
+)
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 import os
-from supabase import create_client, Client
-import logging
 
-url: str = os.getenv("SUPABASE_URL")
-key: str = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
+url = os.getenv("SQLALCHEMY_DATABASE_URI")
 
 
-def create_user(chat_id: int):
-    """
-    * creates a new user in the database
-    """
-    response = supabase.table("users").insert({"chat_id": chat_id}).execute()
-    return response
+# Create an engine
+engine = create_engine(url, echo=True)
 
-def get_user_info(chat_id: str):
-    """
-    * checks if a user exists in the database
-    """
-    response = supabase.table("users").select().eq("chat_id", chat_id).execute()
+# Create a base class
+Base = declarative_base()
 
-    print(response)
 
-    if response.data:
-        return response.data[0]
-    else:
-        return None
+# Define a simple model
+class User(Base):
+    __tablename__ = "users"
 
-def update_user_profile(chat_id, level: str, college: str):
-    """
-    * updates the user's level and college
-    """
-    response = supabase.table("users").update({"college": college, "level": level}).eq("chat_id", chat_id).execute()
-    return response
+    id = Column(Uuid, primary_key=True)
+    chat_id = Column(Integer)
+    college = Column(String)
+    level = Column(String)
 
-def add_message(text: str, college: str, level: int):
-    """
-    * adds a message to the database
-    """
-    response = supabase.table("messages").insert({"message": text, "college": college, "level": level}).execute()
-    return response
+    suggestions = relationship("Suggestion", back_populates="sender")
 
-def filter_users(college: str, level: str):
-    """
-    * filters messages by college and level
-    """
-    query = supabase.table("users")
-    if college == "All" and level == "All":
-        response = query.select().execute()
 
-    elif level == "All":
-        response = query.select().eq("college", college).execute()
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Uuid, primary_key=True)
+    date = Column(DateTime, default=datetime.now)
+    text = Column(Text)
+    filename = Column(String)
+
+
+class Suggestion(Base):
+    __tablename__ = "suggestions"
+
+    id = Column(Uuid, primary_key=True)
+    text = Column(Text)
+    date = Column(DateTime, default=datetime.now)
     
-    elif college == "All":
-        response = query.select().eq("level", level).execute()  
-    
-    else:
-        response = query.select().eq("college", college).eq("level", level).execute()
-    
-    logging.info(response.data)
-    return response 
+    sender_id = Column(Uuid, ForeignKey('users.id'))
+    replies = relationship("Response", back_populates="suggestion")
 
-def get_messages():
-    """
-    * gets all messages from the database
-    """
-    response = supabase.table("messages").select().execute()
-    return response.data
+class Response(Base):
+    __tablename__ = "responses"
+
+    id = Column(Uuid, primary_key=True)
+    text = Column(Text)
+    date = Column(DateTime, default=datetime.now)
+    
+    suggestion_id = Column(Uuid, ForeignKey('suggestions.id'))
+
+# Create all tables
+Base.metadata.create_all(engine)
+
+# Create a configured "Session" class
+session = sessionmaker(bind=engine)
