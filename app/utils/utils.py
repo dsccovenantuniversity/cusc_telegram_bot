@@ -1,119 +1,127 @@
-from telebot import TeleBot
-from colorama import init, Fore, Style
-from app.models import create_user, get_user_info, update_user_profile
-from werkzeug.datastructures import FileStorage
-
+from app import bot
+from ..models import User, db
+from sqlalchemy.exc import SQLAlchemyError
 import logging
-from dotenv import load_dotenv
-
-load_dotenv()
-
-
-init(autoreset=True)
+from werkzeug.datastructures import FileStorage
+from typing import Literal
 
 
-class ParseError(Exception):
+CollegeLiteral = Literal[
+    "All Colleges", "CMSS Students", "CST Students", "COE Students", "CLDS Students"
+]
+LevelLiteral = Literal[
+    "All Levels",
+    "100 Level Students",
+    "200 Level Students",
+    "300 Level Students",
+    "400 Level Students",
+    "500 Level Students",
+]
+
+
+class ParseException(Exception):
     pass
 
 
-def setup_user(bot: TeleBot, chat_id: int, message: str):
-    """
-    * sets up a user in the database
-    """
-    current_user = get_user_info(chat_id)
+def filter(_college: CollegeLiteral, _level: LevelLiteral):
+    college = _college.split(" ")[0]
+    level = _level.split(" ")[0]
 
-    if not current_user:
-        if message == "/start":
-            create_user(chat_id)
+    if college == "All":
+        college = None
+
+    if level == "All":
+        level = None
+
+    query = db.query(User)
+    query = query.filter(User.college == college) if college else query
+    query = query.filter(User.level == level) if level else query
+
+    return query
+
+
+def setup_user(message, chat_id):
+    if message == "/start":
+        if not db.query(User).filter_by(chat_id=chat_id).first():
+            user = User(chat_id=chat_id)
+            try:
+                db.add(user)
+                db.commit()
+            except SQLAlchemyError as error:
+                logging.error(error)
             bot.send_message(
                 chat_id,
-                "Welcome to the CUSC announcement bot, please enter your college and level to verify your studentship like this: \n \n CMSS 200",
+                "Welcome to the bot \nEnter your college and level in this format\nCST 400",
             )
-            logging.info(f"New user created, chat_id = {chat_id}")
-            return
         else:
-            bot.send_message(
-                chat_id, "Please run the /start command to record yourself"
-            )
-            return
+            bot.send_message(chat_id, "You are already registered")
     else:
-        try:
-            user_info = parse_message(message)
+        if not db.query(User).filter_by(chat_id=chat_id).first():
+            bot.send_message(chat_id, "You are not registered")
 
-            if current_user["college"] or current_user["level"]:
-                bot.send_message(chat_id, "You have already been verified")
-                return
+        else:
+            user = db.query(User).filter_by(chat_id=chat_id).first()
+
+            if user.college and user.level:
+                bot.send_message(
+                    chat_id, "Your college and level has already been recorded"
+                )
             else:
-                update_user_profile(chat_id, user_info[1], user_info[0])
-                bot.send_message(chat_id, "You have been successfully verified")
-                return
+                try:
+                    parse_message(message)
+                    college, level = message.split(" ")
 
-        except ParseError as error:
-            bot.send_message(chat_id, str(error))
-            logging.error(error)
-            return
+                    try:
+                        user.college = college
+                        user.level = level
+                        db.commit()
+                    except SQLAlchemyError as error:
+                        logging.error(error)
+                        db.rollback()
 
-
-def parse_message(message: str):
-    """
-    * parses this kind of message: CMSS 200 into ["CMSS", "200"] and validates it
-    """
-    if " " not in message:
-        raise ParseError("Invalid message format")
-    values = message.split(" ")
-
-    if len(values) != 2:
-        raise ParseError("Invalid message format")
-    college = values[0]
-    level = values[1]
-    if college not in ["CMSS", "COE", "CST", "CLDS"]:
-        raise ParseError("Invalid College")
-
-    if level not in ["100", "200", "300", "400"]:
-        if college in ["COE", "CST"] and level == "500":
-            return college, level
-        raise ParseError("Invalid Level")
-    return college, level
+                    bot.send_message(chat_id, "You have been registered successfully")
+                except ParseException as e:
+                    bot.send_message(chat_id, str(e))
 
 
-def mass_send_document(users, bot: TeleBot, file, filename, caption):
-    # * Send to first user
-    message = bot.send_document(
-        users[0]["chat_id"], file, visible_file_name=filename, caption=caption
+def parse_message(message):
+    data = message.split(" ")
+    if len(data) != 2:
+        raise ParseException("Invalid message format")
+    if data[0] not in ["CST", "CMSS", "COE", "CLDS"]:
+        raise ParseException("Invalid college choose from CST, CMSS, COE, CLDS")
+    if data[1] not in ["100", "200", "300", "400", "500"]:
+        raise ParseException("Invalid level choose from 100, 200, 300, 400")
+
+    if data[0] in ["CMSS", "CLDS"] and data[1] == "500":
+        raise ParseException("Who are you whining? 😅")
+
+
+def mass_send_message(message: str, college: CollegeLiteral, level: LevelLiteral):
+    all_users = filter(college, level).all()
+    for user in all_users:
+        bot.send_message(user.chat_id, message)
+
+
+def mass_send_document(
+    document: FileStorage,
+    college: CollegeLiteral,
+    level: LevelLiteral,
+    message: str | None = None,
+):
+    all_users = filter(college, level).all()
+
+    sent = bot.send_document(
+        all_users[0].chat_id,
+        document.stream,
+        caption=message,
+        visible_file_name=document.filename,
     )
 
-    file_id = message.document.file_id
-
-    # * Use file id to send to the rest
-    for user in users[1:]:
+    for user in all_users[1:]:
         bot.send_document(
-            user["chat_id"], file_id, visible_file_name=filename, caption=caption
+            user.chat_id,
+            sent.document.file_id,
+            caption=message,
+            visible_file_name=sent.document.file_name,
         )
-
-
-def mass_send_photos(users, bot: TeleBot, photos, photo_name):
-    # * Send to first user
-    message = bot.send_photo(users[0]["chat_id"], photos, caption=photos.filename)
-
-    file_id = message.photo[-1].file_id
-
-    # * Use file id to send to the rest
-    for user in users[1:]:
-        bot.send_photo(user["chat_id"], file_id, caption=photos.filename)
-
-
-class CustomFormatter(logging.Formatter):
-    """Custom logging formatter to add colors to log messages."""
-
-    def format(self, record):
-        if record.levelno == logging.DEBUG:
-            record.msg = f"{Fore.BLUE}{record.msg}{Style.RESET_ALL}"
-        elif record.levelno == logging.INFO:
-            record.msg = f"{Fore.GREEN}{record.msg}{Style.RESET_ALL}"
-        elif record.levelno == logging.WARNING:
-            record.msg = f"{Fore.YELLOW}{record.msg}{Style.RESET_ALL}"
-        elif record.levelno == logging.ERROR:
-            record.msg = f"{Fore.RED}{record.msg}{Style.RESET_ALL}"
-        elif record.levelno == logging.CRITICAL:
-            record.msg = f"{Fore.MAGENTA}{record.msg}{Style.RESET_ALL}"
-        return super().format(record)

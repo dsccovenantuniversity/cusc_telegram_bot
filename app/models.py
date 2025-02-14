@@ -1,17 +1,18 @@
 from sqlalchemy import (
     create_engine,
     Column,
-    Integer,
     String,
     Uuid,
     DateTime,
     ForeignKey,
     Text,
+    Boolean,
 )
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 import os
+from uuid import uuid4
 
 url = os.getenv("SQLALCHEMY_DATABASE_URI")
 
@@ -27,8 +28,8 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Uuid, primary_key=True)
-    chat_id = Column(Integer)
+    id = Column(Uuid, primary_key=True, default=uuid4)
+    chat_id = Column(String)
     college = Column(String)
     level = Column(String)
 
@@ -38,33 +39,41 @@ class User(Base):
 class Message(Base):
     __tablename__ = "messages"
 
-    id = Column(Uuid, primary_key=True)
+    id = Column(Uuid, primary_key=True, default=uuid4)
     date = Column(DateTime, default=datetime.now)
     text = Column(Text)
     filename = Column(String)
+    college = Column(String)
+    level = Column(String)
 
 
 class Suggestion(Base):
     __tablename__ = "suggestions"
 
-    id = Column(Uuid, primary_key=True)
+    id = Column(Uuid, primary_key=True, default=uuid4)
     text = Column(Text)
     date = Column(DateTime, default=datetime.now)
-    
-    sender_id = Column(Uuid, ForeignKey('users.id'))
+    is_read = Column(Boolean, default=False)
+
+    sender_id = Column(Uuid, ForeignKey("users.id"))
+    sender = relationship("User", back_populates="suggestions")
     replies = relationship("Response", back_populates="suggestion")
+
 
 class Response(Base):
     __tablename__ = "responses"
 
-    id = Column(Uuid, primary_key=True)
+    id = Column(Uuid, primary_key=True, default=uuid4)
     text = Column(Text)
     date = Column(DateTime, default=datetime.now)
-    
-    suggestion_id = Column(Uuid, ForeignKey('suggestions.id'))
+
+    suggestion_id = Column(Uuid, ForeignKey("suggestions.id"))
+    suggestion = relationship("Suggestion", back_populates="replies")
+
 
 # Create all tables
 Base.metadata.create_all(engine)
 
 # Create a configured "Session" class
-session = sessionmaker(bind=engine)
+_Session = sessionmaker(bind=engine)
+db = _Session()

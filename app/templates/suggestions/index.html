@@ -4,19 +4,19 @@
 <div class="tabs is-boxed">
     <ul>
         <li>
-            <a href="{{url_for('suggestions.announce')}}">
+            <a href="{{url_for('announcements.announce')}}">
                 <span class="icon"><box-icon name='volume-full'></box-icon></span>
                 <span>Announce</span>
             </a>
         </li>
         <li>
-            <a href="{{url_for('suggestions.messages')}}">
+            <a href="{{url_for('announcements.messages')}}">
                 <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
                 <span>Messages</span>
             </a>
         </li>
         <li class="is-active">
-            <a>
+            <a href="{{url_for('suggestions.index')}}">
                 <span class="icon"><box-icon name='star' type='solid' class="has-text-primary-50"></box-icon></span>
                 <span>Suggestions</span>
             </a>
@@ -40,8 +40,10 @@
             <div class="column is-7">
                 <div class="box">
                     <div class="content p-5">
-                        Your measurement function can then, in a loop, generate new states and count the steps each of the
-                        robots takes. When it has generated enough measurements, it can use console.log to output the average
+                        Your measurement function can then, in a loop, generate new states and count the steps each of
+                        the
+                        robots takes. When it has generated enough measurements, it can use console.log to output the
+                        average
                         for each robot, which is the total number of steps taken divided by the number of measurements.
                         <p class="has-text-primary-40 has-text-weight-bold mt-2">from abcde</p>
                         <div class="buttons">

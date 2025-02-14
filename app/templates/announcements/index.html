@@ -4,13 +4,13 @@
 <div class="tabs is-boxed">
     <ul>
         <li class="is-active">
-            <a href="{{url_for('suggestions.announce')}}">
+            <a href="{{url_for('announcements.announce')}}">
                 <span class="icon"><box-icon name='volume-full'></box-icon></span>
                 <span>Announce</span>
             </a>
         </li>
         <li>
-            <a href="{{url_for('suggestions.messages')}}">
+            <a href="{{url_for('announcements.messages')}}">
                 <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
                 <span>Messages</span>
             </a>
@@ -38,7 +38,7 @@
 <div class="box">
     <div class="columns">
         <div class="column is-4">
-            <form hx-post="/announce" enctype="multipart/form-data" hx-indicator="#loader">
+            <form hx-post="{{url_for('announcements.announce')}}" enctype="multipart/form-data" hx-indicator="#loader">
                 <p class="title is-1">Announce</p>
                 <div class="field">
                     <p class="control has-icons-left">

@@ -1,93 +1,54 @@
-import telebot
-from flask import request, render_template
-import os
+from flask import request, render_template, current_app
 from dotenv import load_dotenv
-from ..utils.utils import setup_user, CustomFormatter, mass_send_document, mass_send_photos
-import logging
-from app.models import add_message, filter_users, get_messages
 from . import announcements
+from ..utils.utils import setup_user, mass_send_message, mass_send_document
+from ..models import Message, db
 
-
-logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-
-for handler in logging.root.handlers:
-    handler.setFormatter(CustomFormatter())
 
 load_dotenv()
 
-bot = telebot.TeleBot(os.getenv("BOT_API_KEY"))
-webhook_url = os.getenv("WEBHOOK_URL")
 
-
-announcements.route("/webhook", methods=["POST"])
+@announcements.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
-    logging.info(data)
+    current_app.logger.info(data)
 
-    if data.get("message"):
-        text = data["message"]["text"]
-        chat_id = data["message"]["chat"]["id"]
-
-    if data.get("edited_message"):
-        text = data["edited_message"]["text"]
-        chat_id = data["edited_message"]["chat"]["id"]
-
-    setup_user(bot, chat_id, text)
+    if data["message"]:
+        setup_user(data["message"]["text"], str(data["message"]["chat"]["id"]))
 
     return {"ok": True}
 
 
-announcements.route("/announce", methods=["POST"])
+@announcements.route("/announce", methods=["POST", "GET"])
 def announce():
-    college = request.form["colleges"].split(" ")[0]
-    level = request.form["levels"].split(" ")[0]
-    files = request.files
-    data = request.form
+    if request.method == "POST":
+        data = request.form
+        college = data["colleges"]
+        level = data["levels"]
+        new_message = Message(college=college.split(" ")[0], level=level.split(" ")[0])
 
-    if not data["message"] and not files:
-        return render_template(
-            "messages/failure.html", reason="No message or file was sent"
-        )
-
-    add_message(data["message"], college, level)
-
-    all_recipients = filter_users(college, level).data
-    if files:
-        uploaded_file = files["file"]
-        file_name = uploaded_file.filename
-
-        caption = file_name if not data["message"] else data["message"]
-
-        if file_name.endswith(("jpg", "jpeg", "png")):
-            mass_send_photos(all_recipients, bot, uploaded_file.stream, )
-
-        elif file_name.endswith(("docx", "pdf", "xlsx", "pptx")):
-            mass_send_document(
-                all_recipients,
-                bot,
-                uploaded_file.stream,
-                filename=uploaded_file.filename,
-                caption = caption
+        if not data["message"] and not request.files:
+            return render_template(
+                "messages/failure.html", reason="No message provided"
             )
 
-            return render_template("messages/success.html")
+        if request.files:
+            new_message.filename = request.files["file"].filename
+            mass_send_document(request.files["file"], college, level)
 
-    for user in all_recipients:
-        bot.send_message(user["chat_id"], data["message"])
+        if data["message"]:
+            new_message.text = data["message"]
+            mass_send_message(data["message"], college, level)
 
-    return render_template("messages/success.html")
+        current_app.logger.info(data)
+        db.add(new_message)
+        db.commit()
+
+        return render_template("messages/success.html")
+    return render_template("announcements/index.html", include_js=True)
 
 
-announcements.route("/")
-def index():
-    return render_template("index.html")
-
-
-announcements.route("/messages", methods=["GET"])
+@announcements.route("/messages", methods=["GET"])
 def messages():
-    messages = get_messages()
-    return render_template("messages.html", messages=messages)
-
-
-bot.remove_webhook()
-bot.set_webhook(webhook_url)
+    all_messages = db.query(Message).all()
+    return render_template("announcements/messages.html", all_messages = all_messages)

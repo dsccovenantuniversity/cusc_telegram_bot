@@ -4,13 +4,13 @@
 <div class="tabs is-boxed">
     <ul>
         <li>
-            <a href="{{url_for('suggestions.announce')}}">
+            <a href="{{url_for('announcements.announce')}}">
                 <span class="icon"><box-icon name='volume-full'></box-icon></span>
                 <span>Announce</span>
             </a>
         </li>
         <li class="is-active">
-            <a href="{{url_for('suggestions.messages')}}">
+            <a href="{{url_for('announcements.messages')}}">
                 <span class="icon"><box-icon name='message-dots' type='solid'></box-icon></span>
                 <span>Messages</span>
             </a>
@@ -37,16 +37,31 @@
     <hr>
     <div class="columns">
         <div class="column is-7">
+            {% for message in all_messages %}
             <div class="box">
                 <div class="content">
-                    Your measurement function can then, in a loop, generate new states and
-                    count the steps each of the robots takes. When it has generated enough mea
-                    surements, it can use console.log to output the average for each robot, which
-                    is the total number of steps taken divided by the number of measurements.
-                    <p class="has-text-weight-bold mt-3">CMSS, 300 Level</p>
-                    <p class="is-size-7 has-text-primary has-text-semibold">12th December 2024; 3:45pm</p>
+
+                    <div>
+                        {% if not message.text %}
+                            <p class="has-font-weight-bold has-text-primary-30">No Message</p>
+                        {% else %}
+                            <span class="has-text-weight-semibold">Message: </span>{{message.text}}
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-2">
+                        {% if not message.filename %}
+                            <p class="has-text-primary-50">No File</p>
+                        {% else %}
+                            <span class="has-text-weight-semibold">File:</span> {{message.filename}}
+                        {% endif %}
+                    </div>
+
+                    <p class="has-text-weight-bold mt-3">{{message.college}} College, {{message.level}} Level</p>
+                    <p class="is-size-7 has-text-primary has-text-semibold">{{message.date | datetime}}</p>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </div>
