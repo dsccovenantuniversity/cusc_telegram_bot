@@ -1,5 +1,5 @@
 from app import bot
-from ..models import User, db
+from ..models import User, db, Suggestion
 from sqlalchemy.exc import SQLAlchemyError
 import logging
 from werkzeug.datastructures import FileStorage
@@ -40,7 +40,34 @@ def filter(_college: CollegeLiteral, _level: LevelLiteral):
     return query
 
 
-def setup_user(message, chat_id):
+def setup_user(message: str, chat_id: int):
+
+    #! Oga yii, shorten this function jor
+    if message.startswith("/suggest"):
+        suggest_message = message[8:]
+
+        if len(suggest_message) < 6:
+            # XXX whitespaces are also considered characters.
+            bot.send_message(chat_id, "The message is too short")
+            return
+
+        user = db.query(User).filter_by(chat_id=chat_id).first()
+
+        if not user:
+            bot.send_message(chat_id, "You are not registered")
+            return
+        
+        suggestion = Suggestion(sender=user, text=message[8:])
+        try:
+            db.add(suggestion)
+            db.commit()
+            bot.send_message(chat_id, "Suggestion sent successfully")
+        except SQLAlchemyError as error:
+            logging.error(error)
+            db.rollback()
+            bot.send_message(chat_id, "An error occurred while sending the suggestion")
+        return
+
     if message == "/start":
         if not db.query(User).filter_by(chat_id=chat_id).first():
             user = User(chat_id=chat_id)
@@ -51,7 +78,11 @@ def setup_user(message, chat_id):
                 logging.error(error)
             bot.send_message(
                 chat_id,
-                "Welcome to the bot \nEnter your college and level in this format\nCST 400",
+                "Hey there! Welcome to the CUSC Announcement Bot. 🎉\n\n"
+                "Got a suggestion for the student council? Just type */suggest your message*.\n\n"
+                "To get started and register, please enter your college and level like this:\n"
+                "*CST 400*\n"
+                "Looking forward to having you on board! 😊", "Markdown"
             )
         else:
             bot.send_message(chat_id, "You are already registered")
@@ -84,7 +115,7 @@ def setup_user(message, chat_id):
                     bot.send_message(chat_id, str(e))
 
 
-def parse_message(message):
+def parse_message(message: str):
     data = message.split(" ")
     if len(data) != 2:
         raise ParseException("Invalid message format")

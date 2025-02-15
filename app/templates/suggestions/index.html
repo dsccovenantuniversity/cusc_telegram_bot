@@ -22,7 +22,7 @@
             </a>
         </li>
         <li>
-            <a href="{{url_for('suggestions.reply')}}">
+            <a href="{{url_for('suggestions.reply_dormant')}}">
                 <span class="icon"><box-icon name='hot' type='solid'></box-icon></span>
                 <span>Reply</span>
             </a>
@@ -33,25 +33,39 @@
 
 {% block content %}
 <div class="box">
-    <p class="title is-1">Suggestions <span class="tag is-primary is-medium">4 Unread</span></p>
+    <p class="title is-1">Suggestions <span class="tag is-primary is-medium">{{unread}} Unread</span></p>
     <hr>
     <div class="my-5">
         <div class="columns">
             <div class="column is-7">
+                {% for suggestion in suggestions %}
                 <div class="box">
                     <div class="content p-5">
-                        Your measurement function can then, in a loop, generate new states and count the steps each of
-                        the
-                        robots takes. When it has generated enough measurements, it can use console.log to output the
-                        average
-                        for each robot, which is the total number of steps taken divided by the number of measurements.
-                        <p class="has-text-primary-40 has-text-weight-bold mt-2">from abcde</p>
+                        {{suggestion.text}}
+                        <p class="has-text-primary-40 has-text-weight-bold mt-2">at {{suggestion.date | datetime}}</p>
+
+                        <hr>
+                        <p class="subtitle is-5 has-text-weight-semibold">
+                            Replies
+                        </p>
+
+                        <ul>
+                            {% for reply in suggestion.replies %}
+                                <li>{{reply.text}}</li>
+                            {% endfor %}
+                        </ul>
                         <div class="buttons">
-                            <a href="" class="button is-primary"><strong>Reply</strong></a>
-                            <a href="" class="button is-outlined is-primary">Mark Read</a>
+                            <a href="/suggestions/{{suggestion.id}}/reply"
+                                class="button is-primary"><strong>Reply</strong></a>
+
+                            {% if not suggestion.is_read %}
+                                <a href="/suggestions/{{suggestion.id}}/read" class="button is-outlined is-primary">Mark
+                                Read</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
