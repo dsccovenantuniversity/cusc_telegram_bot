@@ -18,7 +18,7 @@ url = os.getenv("SQLALCHEMY_DATABASE_URI")
 
 
 # Create an engine
-engine = create_engine(url, echo=True, isolation_level="READ UNCOMMITTED")
+engine = create_engine(url, echo=True)
 
 # Create a base class
 Base = declarative_base()
