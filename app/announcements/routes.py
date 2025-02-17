@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from . import announcements
 from ..utils.utils import setup_user, mass_send_message, mass_send_document
 from ..models import Message, db
+from sqlalchemy.exc import SQLAlchemyError
 
 
 load_dotenv()
@@ -41,8 +42,13 @@ def announce():
             mass_send_message(data["message"], college, level)
 
         current_app.logger.info(data)
-        db.add(new_message)
-        db.commit()
+
+        try:
+            db.add(new_message)
+            db.commit()
+        except SQLAlchemyError as err:
+            current_app.logger.error(err)
+            db.rollback()
 
         return render_template("messages/success.html")
     return render_template("announcements/index.html", include_js=True)
@@ -51,4 +57,4 @@ def announce():
 @announcements.route("/messages", methods=["GET"])
 def messages():
     all_messages = db.query(Message).all()
-    return render_template("announcements/messages.html", all_messages = all_messages)
+    return render_template("announcements/messages.html", all_messages=all_messages)

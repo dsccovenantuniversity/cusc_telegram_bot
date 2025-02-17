@@ -40,3 +40,6 @@ All contributions are highly appreciated ⭐
 
 ## Deploying this bot
 This bot was originally deployed on railway and a live version of this bot can be found [here](https://cusctelegrambot-production.up.railway.app/).
+
+
+<!-- TODO Deal with transaction rollbacks perfectly -->

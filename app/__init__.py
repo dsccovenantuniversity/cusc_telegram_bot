@@ -18,13 +18,6 @@ def format_datetime(value: datetime, format="%a, %d %b %Y ; %r"):
     return value.strftime(format)
 
 
-def server_error():
-    return render_template(
-        "messages/failure.html",
-        reason="There seems to be an error on our end please contact us to fix it",
-    )
-
-
 def create_app(config="development"):
     app = Flask(__name__)
     app.config.from_object(config_dict[config])
@@ -44,7 +37,9 @@ def create_app(config="development"):
     app.logger.level = logging.DEBUG
     app.logger.info(bot.get_webhook_info())
 
-    app.register_error_handler(500, server_error)
+    @app.errorhandler(500)
+    def server_error():
+        return render_template("messages/failure.html", reason="There seems to be an error on our end"), 500
 
     app.logger.info(app.url_map)
 

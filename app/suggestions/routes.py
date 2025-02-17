@@ -3,12 +3,17 @@ from flask import render_template, request
 from ..models import Suggestion, db, Response
 from flask import current_app, redirect, url_for
 from app import bot
+from sqlalchemy.exc import SQLAlchemyError
 
 
 @suggestions.route("/")
 def index():
-    suggestions = db.query(Suggestion).all()
-    unread = db.query(Suggestion).filter_by(is_read=False).count()
+    try:
+        suggestions = db.query(Suggestion).all()
+        unread = db.query(Suggestion).filter_by(is_read=False).count()
+    except SQLAlchemyError as err:
+        current_app.logger.error(err)
+        db.rollback()
     current_app.logger.info(unread)
     return render_template(
         "./suggestions/index.html",
@@ -30,8 +35,13 @@ def reply(suggestion_id: str):
         data = request.form
         current_app.logger.info(data)
         new_reply = Response(text=data["message"], suggestion_id=suggestion_id)
-        db.add(new_reply)
-        db.commit()
+
+        try:
+            db.add(new_reply)
+            db.commit()
+        except SQLAlchemyError as err:
+            current_app.logger.error(err)
+            db.rollback()
 
         bot.send_message(
             db.query(Suggestion).get(suggestion_id).sender.chat_id, data["message"]
@@ -49,5 +59,10 @@ def reply(suggestion_id: str):
 def read_suggestion(suggestion_id: str):
     suggestion = db.query(Suggestion).get(suggestion_id)
     suggestion.is_read = True
-    db.commit()
+    try:
+        db.commit()
+    except SQLAlchemyError as err:
+        current_app.logger.error(err)
+        db.rollback()
+
     return redirect(url_for("suggestions.index"))
