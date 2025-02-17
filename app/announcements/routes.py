@@ -13,7 +13,7 @@ def webhook():
     data = request.json
     current_app.logger.info(data)
 
-    if data["message"]:
+    if data.get("message"):
         setup_user(data["message"]["text"], str(data["message"]["chat"]["id"]))
 
     return {"ok": True}
